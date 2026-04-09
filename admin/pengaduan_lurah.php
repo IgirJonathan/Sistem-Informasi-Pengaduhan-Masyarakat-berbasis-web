@@ -34,8 +34,8 @@ if (isset($_POST['approval_action'])) {
             exit;
         }
     } elseif ($action === 'reject') {
-        // Lurah reject: set status='rejected', rejected_by, rejected_at, rejection_reason
-        $query = "UPDATE pengaduan SET status='rejected', rejected_by='$id_lurah', rejected_at=NOW(), rejection_reason='$catatan_private', is_approved=0 WHERE id_pengaduan='$id_pengaduan'";
+        // Lurah reject: set status='rejected', rejected_by, rejected_at, rejection_reason, and hide from KL dashboard
+        $query = "UPDATE pengaduan SET status='rejected', rejected_by='$id_lurah', rejected_at=NOW(), rejection_reason='$catatan_private', is_approved=0, hidden_from_kl=1 WHERE id_pengaduan='$id_pengaduan'";
         $res = mysqli_query($conn, $query);
         if ($res) {
             $msg = !empty($catatan_publik) ? 'Ditolak oleh Lurah: ' . $catatan_publik : 'Ditolak oleh Lurah';
@@ -102,6 +102,7 @@ if (!$ambil) {
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7 ps-2">Judul</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Pelapor</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Tanggal Masuk</th>
+                                <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Waktu</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Kepala Lingkungan</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Status Approval</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Progress KL</th>
@@ -119,6 +120,7 @@ if (!$ambil) {
                                 <td><?php echo $data['judul_pengaduan']; ?></td>
                                 <td><?php echo $data['nama']; ?></td>
                                 <td><?php echo format_datetime($data['tgl_pengaduan']); ?></td>
+                                <td><?php echo time_ago($data['tgl_pengaduan']); ?></td>
                                 <td><?php echo $data['nama_kepala'] ?? '-'; ?></td>
                                 <td class="text-center">
                                     <?php if (!$data['is_approved'] || $data['is_approved'] != 1) { ?>

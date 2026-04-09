@@ -87,7 +87,7 @@ if (!empty($_GET['id_pengaduan'])) {
                                     </tr>
                                     <tr>
                                         <td>Tanggal:</td>
-                                        <td><?= date('d/m/Y', strtotime($data['tgl_pengaduan'])); ?></td>
+                                        <td><?= format_datetime($data['tgl_pengaduan']); ?></td>
                                     </tr>
                                     <tr>
                                         <td>Foto:</td>
@@ -144,33 +144,33 @@ if (!empty($_GET['id_pengaduan'])) {
                                     <?php } ?>
                                     <tr>
                                         <td>Submitted:</td>
-                                        <td><?= date('d/m/Y H:i', strtotime($data['tgl_pengaduan'])); ?></td>
+                                        <td><?= format_datetime($data['tgl_pengaduan']); ?></td>
                                     </tr>
                                     <?php if (!empty($data['opened_at'])) { ?>
                                     <tr>
                                         <td>Dibuka:</td>
-                                        <td><?= date('d/m/Y H:i', strtotime($data['opened_at'])); ?>
+                                        <td><?= format_datetime($data['opened_at']); ?>
                                             <?php if (!empty($data['opened_by_name'])) { echo ' - oleh ' . $data['opened_by_name']; } ?></td>
                                     </tr>
                                     <?php } ?>
                                     <?php if (!empty($data['approved_at'])) { ?>
                                     <tr>
                                         <td>Disetujui:</td>
-                                        <td><?= date('d/m/Y H:i', strtotime($data['approved_at'])); ?>
+                                        <td><?= format_datetime($data['approved_at']); ?>
                                             <?php if (!empty($data['approved_by_name'])) { echo ' - oleh ' . $data['approved_by_name']; } ?></td>
                                     </tr>
                                     <?php } ?>
                                     <?php if (!empty($data['is_assigned']) && $data['is_assigned'] == 1) { ?>
                                     <tr>
                                         <td>Ditugaskan:</td>
-                                        <td><?= !empty($data['assigned_at']) ? date('d/m/Y H:i', strtotime($data['assigned_at'])) : '-'; ?>
+                                        <td><?= !empty($data['assigned_at']) ? format_datetime($data['assigned_at']) : '-'; ?>
                                             <?php if (!empty($data['assigned_by_name'])) { echo ' - oleh ' . $data['assigned_by_name']; } ?></td>
                                     </tr>
                                     <?php } ?>
                                     <?php if (!empty($data['closed_at'])) { ?>
                                     <tr>
                                         <td>Selesai:</td>
-                                        <td><?= date('d/m/Y H:i', strtotime($data['closed_at'])); ?>
+                                        <td><?= format_datetime($data['closed_at']); ?>
                                             <?php if (!empty($data['closed_by_name'])) { echo ' - oleh ' . $data['closed_by_name']; } ?></td>
                                     </tr>
                                     <?php } ?>
@@ -188,7 +188,7 @@ if (!empty($_GET['id_pengaduan'])) {
                                             <br><strong>Alasan:</strong> <?= nl2br($data['rejection_reason']); ?><br>
                                         <?php } ?>
                                         <?php if (!empty($data['rejected_at'])) { ?>
-                                            <br><small>Ditolak pada: <?= date('d/m/Y H:i', strtotime($data['rejected_at'])); ?></small>
+                                            <br><small>Ditolak pada: <?= format_datetime($data['rejected_at']); ?></small>
                                         <?php } ?>
                                     </div>
                                 <?php } elseif ($data['status'] == 'opened' && $data['is_workable'] == 0) { ?>
@@ -220,7 +220,7 @@ if (!empty($_GET['id_pengaduan'])) {
                                         <div class="timeline-content">
                                             <h6 class="timeline-title">
                                                 <?= $tanggapan['nama_petugas'] ?? 'Sistem'; ?> 
-                                                <small class="text-muted">- <?= date('d/m/Y H:i', strtotime($tanggapan['tgl_tanggapan'])); ?></small>
+                                                <small class="text-muted">- <?= format_datetime($tanggapan['tgl_tanggapan']); ?></small>
                                             </h6>
                                             <p class="timeline-text"><?= nl2br($tanggapan['tanggapan']); ?></p>
                                         </div>

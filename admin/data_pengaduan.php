@@ -79,6 +79,7 @@ if ($total_found == 0) {
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7 ps-2">Judul</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Pelapor</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Tanggal Masuk</th>
+                                <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Waktu</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Status</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Progress</th>
                                 <th class="text-center text-uppercase text-dark text-xs font-weight-bolder opacity-7">Aksi</th>
@@ -96,6 +97,7 @@ if ($total_found == 0) {
                                 <td><?php echo $data['judul_pengaduan']; ?></td>
                                 <td><?php echo $data['nama']; ?></td>
                                 <td><?php echo format_datetime($data['tgl_pengaduan']); ?></td>
+                                <td><?php echo time_ago($data['tgl_pengaduan']); ?></td>
                                 <td class="text-center">
                                     <?php if ($data['status'] == 'rejected' && $rejected_by_lurah) { ?>
                                         <span class="badge badge-sm bg-danger">Ditolak oleh Lurah</span>

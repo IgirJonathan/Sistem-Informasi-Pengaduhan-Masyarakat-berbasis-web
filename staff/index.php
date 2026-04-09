@@ -32,7 +32,7 @@ if (!isset($_SESSION['login']) || $_SESSION['login'] != 'petugas' || $_SESSION['
                         include 'detail_laporan.php';
                         break;
                     default:
-                        echo "HALAMAN TAK TERSEDIA";
+                        echo "<div class='container mt-4'><div class='alert alert-danger'>Halaman tidak tersedia</div></div>";
                         break;
                 }
             } else {

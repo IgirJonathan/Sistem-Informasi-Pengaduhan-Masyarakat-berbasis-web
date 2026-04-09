@@ -89,6 +89,71 @@
 
     </section><!-- /Hero Section -->
 
+    <!-- Pengaduan Section -->
+    <section id="pengaduan" class="pengaduan section">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <div class="section-title text-center" data-aos="fade-up">
+              <h2>Status Pengaduan</h2>
+              <p>Lihat progress pengaduan yang telah diajukan</p>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12">
+            <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                  <tr>
+                    <th>No</th>
+                    <th>Judul</th>
+                    <th>Tanggal</th>
+                    <th>Status</th>
+                    <th>Progress</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php
+                  include 'config/koneksi.php';
+                  include 'config/functions.php';
+                  $query = mysqli_query($conn, "SELECT id_pengaduan, judul_pengaduan, tgl_pengaduan, status, progress_status FROM pengaduan ORDER BY tgl_pengaduan DESC LIMIT 50");
+                  $no = 1;
+                  while ($data = mysqli_fetch_assoc($query)) {
+                    // Anonymous: hide real title if needed, but keep for demo
+                    $judul = substr($data['judul_pengaduan'], 0, 50) . (strlen($data['judul_pengaduan']) > 50 ? '...' : '');
+                    $status = $data['status'];
+                    $progress = $data['progress_status'] ?? 'pending';
+                    
+                    // Status display
+                    $status_badge = '';
+                    if ($status == 'pending') {
+                      $status_badge = '<span class="badge bg-secondary">Menunggu</span>';
+                    } elseif ($status == 'opened') {
+                      $status_badge = '<span class="badge bg-primary">Dikerjakan</span>';
+                    } elseif ($status == 'closed') {
+                      $status_badge = '<span class="badge bg-success">Selesai</span>';
+                    } elseif ($status == 'rejected') {
+                      $status_badge = '<span class="badge bg-danger">Ditolak</span>';
+                    }
+                    
+                    echo "<tr>
+                            <td>{$no}</td>
+                            <td>{$judul}</td>
+                            <td>" . format_datetime($data['tgl_pengaduan']) . "</td>
+                            <td>{$status_badge}</td>
+                            <td>" . ucfirst(str_replace('_', ' ', $progress)) . "</td>
+                          </tr>";
+                    $no++;
+                  }
+                  ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section><!-- /Pengaduan Section -->
     
   </main>
 

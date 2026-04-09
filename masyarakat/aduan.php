@@ -4,8 +4,18 @@
 
             <div; class="card">
                 <div class="card-header d-flex pb-0">
-                    <h6>PENGADUAN</h6>
-                </div>
+                    <h6>PENGADUAN</h6>                    <div class="ms-auto">
+                        <form method="GET" class="d-inline">
+                            <input type="hidden" name="page" value="aduan">
+                            <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="">Urutkan Berdasarkan</option>
+                                <option value="terbaru" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'terbaru') ? 'selected' : ''; ?>>Terbaru</option>
+                                <option value="terlama" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'terlama') ? 'selected' : ''; ?>>Terlama</option>
+                                <option value="selesai" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'selesai') ? 'selected' : ''; ?>>Selesai</option>
+                                <option value="belum_selesai" <?php echo (isset($_GET['sort']) && $_GET['sort'] == 'belum_selesai') ? 'selected' : ''; ?>>Belum Selesai</option>
+                            </select>
+                        </form>
+                    </div>                </div>
                 <div class="card-body px-0 pt-0 pb-2">
                     <div class="table-responsive p-0">
                         <table class="table table-striped align-items-center mb-0">
@@ -26,7 +36,16 @@
                                 include "../config/functions.php";
                                 //menampung data nik dari session yang dibuat setelah login
                                 $nik = $_SESSION['nik'];
-                                $query = mysqli_query($conn, "SELECT * FROM pengaduan WHERE nik = '$nik' AND is_deleted_by_masyarakat = 0"); //menampilkan data pengaduan yang belum dihapus masyarakat
+                                $sort = isset($_GET['sort']) ? $_GET['sort'] : '';
+                                $order_by = "ORDER BY id_pengaduan DESC"; // default terbaru
+                                if ($sort == 'terlama') {
+                                    $order_by = "ORDER BY id_pengaduan ASC";
+                                } elseif ($sort == 'selesai') {
+                                    $order_by = "ORDER BY FIELD(status, 'closed', 'rejected', 'opened', 'pending'), id_pengaduan DESC";
+                                } elseif ($sort == 'belum_selesai') {
+                                    $order_by = "ORDER BY FIELD(status, 'pending', 'opened', 'rejected', 'closed'), id_pengaduan DESC";
+                                }
+                                $query = mysqli_query($conn, "SELECT * FROM pengaduan WHERE nik = '$nik' AND is_deleted_by_masyarakat = 0 $order_by"); //menampilkan data pengaduan yang belum dihapus masyarakat
                                 while ($data = mysqli_fetch_array($query)) { ?>
                                     <tr>
                                         <td class="align-middle text-center text-sm">
@@ -138,41 +157,36 @@
                                             <!-- HAPUS -->
                                             <?php
                                             // Kondisi tombol hapus aktif:
-                                            // - pending dan belum divalidasi / belum terus diproses (kecuali dibatalkan KL)
-                                            // - rejected (oleh KL atau Lurah)
-                                            // - closed
-                                            $can_delete = false;
-                                            if ($data['status'] == 'pending' && !$validated_by_kl && !$cancelled_by_kl) {
-                                                $can_delete = true; // Belum divalidasi (aturan baru: cancelled KL => tidak bisa hapus)
-                                            } elseif ($data['status'] == 'rejected') {
-                                                $can_delete = true; // Ditolak=> bisa hapus
-                                            } elseif ($data['status'] == 'closed') {
-                                                $can_delete = true; // Selesai=> bisa hapus
-                                            }
+                                            // - Bisa dihapus jika belum divalidasi oleh Kepala Lingkungan
+                                            // - atau jika sudah ditolak oleh Lurah
+                                            $can_delete = !$validated_by_kl || $rejected_by_lurah;
                                             ?>
-                                            <a href="#" data-bs-toggle="modal" class="btn btn-danger <?php echo !$can_delete ? 'disabled' : ''; ?>" data-bs-target="#hapus<?= $data['id_pengaduan'] ?>" style="text-decoration:none; color:white;" <?php echo !$can_delete ? 'aria-disabled="true" tabindex="-1"' : ''; ?>>HAPUS</a>
-                                            <!-- modal HAPUS -->
-                                            <div class="modal fade" id="hapus<?= $data['id_pengaduan'] ?>" tabindex="-1" aria-labelledby="hapusLabel" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h1 class="modal-title fs-5" id="hapusLabel">Hapus Data</h1>
-                                                            <button type="button" class="btn-close bg-dark " data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <form action="edit_data.php" method="POST">
-                                                                <input type="hidden" name="id_pengaduan" class="form-control" value="<?= $data['id_pengaduan']; ?>">
-                                                                <p>Yakin mau dihapus data <br> <?= $data['judul_pengaduan']; ?>?</p>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="submit" name="hapus_pengaduan" value="hapus_pengaduan" class="btn btn-danger">Hapus</button>
-                                                        </div>
-                                                        </form>
+                                            <?php if ($can_delete) : ?>
+                                                <a href="#" data-bs-toggle="modal" class="btn btn-danger" data-bs-target="#hapus<?= $data['id_pengaduan'] ?>" style="text-decoration:none; color:white;">HAPUS</a>
 
+                                                <!-- modal HAPUS -->
+                                                <div class="modal fade" id="hapus<?= $data['id_pengaduan'] ?>" tabindex="-1" aria-labelledby="hapusLabel" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h1 class="modal-title fs-5" id="hapusLabel">Hapus Data</h1>
+                                                                <button type="button" class="btn-close bg-dark " data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <form action="edit_data.php" method="POST">
+                                                                    <input type="hidden" name="id_pengaduan" class="form-control" value="<?= $data['id_pengaduan']; ?>">
+                                                                    <p>Yakin mau dihapus data <br> <?= $data['judul_pengaduan']; ?>?</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="submit" name="hapus_pengaduan" value="hapus_pengaduan" class="btn btn-danger">Hapus</button>
+                                                            </div>
+                                                            </form>
+
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <!-- /modal-HAPUS -->
+                                                <!-- /modal-HAPUS -->
+                                            <?php endif; ?>
                                             <!-- /HAPUS -->
                                         </td>
                                     </tr>

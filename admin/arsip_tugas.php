@@ -9,13 +9,14 @@ $level = $_SESSION['level'] ?? '';
 $id_petugas = $_SESSION['id_petugas'] ?? 0;
 
 if ($level == 'kepala_lingkungan') {
-    // Untuk KL: tugas yang sudah closed
-    $query = mysqli_query($conn, "SELECT p.id_pengaduan, p.judul_pengaduan, m.nama AS pengirim, p.status, p.closed_at AS tanggal
+    // Untuk KL: tugas yang sudah selesai atau sudah di-mark completed oleh KL
+    $query = mysqli_query($conn, "SELECT p.id_pengaduan, p.judul_pengaduan, m.nama AS pengirim, p.status, p.progress_status, COALESCE(p.closed_at, p.last_progress_update) AS tanggal
                                   FROM pengaduan p
                                   LEFT JOIN masyarakat m ON p.nik = m.nik
-                                  WHERE p.status = 'closed' AND p.id_kepala_lingkungan = '$id_petugas'
+                                  WHERE p.id_kepala_lingkungan = '$id_petugas'
+                                    AND (p.status = 'closed' OR p.progress_status = 'completed')
                                   GROUP BY p.id_pengaduan
-                                  ORDER BY p.closed_at DESC");
+                                  ORDER BY COALESCE(p.closed_at, p.last_progress_update) DESC");
 } else {
     echo "<div class='alert alert-danger'>Akses ditolak</div>";
     exit;
@@ -45,11 +46,17 @@ if ($level == 'kepala_lingkungan') {
                                 <?php if (mysqli_num_rows($query) > 0) { ?>
                                     <?php while ($row = mysqli_fetch_array($query)) { ?>
                                         <tr>
-                                            <td><?php echo date('d/m/Y H:i', strtotime($row['tanggal'])); ?></td>
+                                            <td><?php echo format_datetime($row['tanggal']); ?></td>
                                             <td><?php echo htmlspecialchars($row['judul_pengaduan']); ?></td>
                                             <td><?php echo htmlspecialchars($row['pengirim']); ?></td>
                                             <td>
-                                                <span class="badge bg-success">Selesai</span>
+                                                <?php if ($row['status'] == 'closed') : ?>
+                                                    <span class="badge bg-success">Selesai</span>
+                                                <?php elseif ($row['progress_status'] == 'completed') : ?>
+                                                    <span class="badge bg-success">Selesai (Menunggu Tutup)</span>
+                                                <?php else : ?>
+                                                    <span class="badge bg-success">Selesai</span>
+                                                <?php endif; ?>
                                             </td>
                                             <td>
                                                 <a href="index.php?page=detail_arsip&id_pengaduan=<?php echo $row['id_pengaduan']; ?>" class="btn btn-primary btn-sm">Lihat Detail</a>

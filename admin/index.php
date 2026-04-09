@@ -62,7 +62,7 @@
                             break;
 
                         default:
-                            echo "HALAMAN TAK TERSEDIA";
+                            echo "<div class='container mt-4'><div class='alert alert-danger'>Halaman tidak tersedia</div></div>";
                             break;
                     }
                 } else {

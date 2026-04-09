@@ -69,7 +69,7 @@ function formatWilayah($rawWilayah) {
                             // - Validation permission tetap dibatasi per wilayah di action level
                             if ($wilayah != 'Tidak Ditetapkan') {
                                 // Build base query
-                                $base_query = "SELECT a.*, a.wilayah as pengaduan_wilayah, b.* FROM pengaduan a INNER JOIN masyarakat b ON a.nik = b.nik WHERE a.status != 'closed' AND (a.id_kepala_lingkungan = '$id_kepala' OR a.status = 'pending') AND (a.hidden_from_kl IS NULL OR a.hidden_from_kl = 0)";
+                                $base_query = "SELECT a.*, a.wilayah as pengaduan_wilayah, b.* FROM pengaduan a INNER JOIN masyarakat b ON a.nik = b.nik WHERE a.status NOT IN ('closed','rejected') AND (a.id_kepala_lingkungan = '$id_kepala' OR a.status = 'pending') AND (a.hidden_from_kl IS NULL OR a.hidden_from_kl = 0)";
                                 
                                 // Add wilayah filter if selected
                                 if (!empty($filter_wilayah)) {
@@ -162,6 +162,7 @@ function formatWilayah($rawWilayah) {
                                         }
                                         ?>
                                         <?php 
+                                            $rejected_by_lurah = false;
                                             $is_assigned_to_me = ($data['id_kepala_lingkungan'] == $id_kepala);
                                             $is_pending_in_my_wilayah = ($data['status'] == 'pending' && (empty($data['id_kepala_lingkungan']) || $data['id_kepala_lingkungan'] === 'NULL') && normalize_wilayah($data['pengaduan_wilayah']) == normalize_wilayah($wilayah));
                                         ?>
@@ -199,7 +200,9 @@ function formatWilayah($rawWilayah) {
                                                         <img src="../database/img/<?= htmlspecialchars($data['foto']); ?>" alt="Foto" style="max-width:100%; height:auto;" />
                                                     </div>
                                                 <?php } ?>
-                                                <p><strong>Catatan Lurah:</strong> <?= !empty($lurah_note) ? htmlspecialchars($lurah_note) : '-'; ?></p>
+                                                <?php if (!empty($lurah_note)) { ?>
+                                                    <p><strong>Catatan Lurah:</strong> <?= htmlspecialchars($lurah_note); ?></p>
+                                                <?php } ?>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -416,11 +419,7 @@ function formatWilayah($rawWilayah) {
                                 </div>
 
                             <?php } } else {
-                                if (!empty($total_assigned) && $total_assigned > 0) {
-                                    echo "<tr><td colspan='7' class='text-center text-info' style='padding: 30px 20px;'><h5 class='mb-0'>Anda memiliki $total_assigned laporan terhubung, tapi tidak ada yang dapat ditampilkan (mungkin sudah selesai/ditutup).</h5></td></tr>";
-                                } else {
-                                    echo "<tr><td colspan='7' class='text-center text-muted' style='padding: 30px 20px;'><h5 class='mb-0'>Tidak ada pengaduan untuk divalidasi saat ini.</h5></td></tr>";
-                                }
+                                echo "<tr><td colspan='7' class='text-center text-muted' style='padding: 30px 20px;'><h5 class='mb-0'>Tidak ada pengaduan untuk divalidasi saat ini.</h5></td></tr>";
                             } ?>
                         </tbody>
                     </table>

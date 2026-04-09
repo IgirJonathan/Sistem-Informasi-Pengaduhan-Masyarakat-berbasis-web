@@ -32,7 +32,7 @@ while ($kl = mysqli_fetch_assoc($kl_q)) {
     <div class="row mb-4">
         <div class="card">
             <div class="card-header d-flex pb-0">
-                <h6>Monitoring Laporan per Kepala Lingkungan</h6>
+                <h6>Hasil Kerja Laporan per Kepala Lingkungan</h6>
             </div>
             <div class="card-body px-0 pt-0 pb-2">
                 <div class="table-responsive p-0">

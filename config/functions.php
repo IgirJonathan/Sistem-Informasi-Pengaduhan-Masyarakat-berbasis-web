@@ -21,7 +21,12 @@ function format_datetime($timestamp) {
         $year = $matches[1];
         $month = $matches[2];
         $day = $matches[3];
-        return "$day/$month/$year"; // date-only, no time component
+        $monthNames = [
+            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+            '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+            '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+        ];
+        return "$day " . ($monthNames[$month] ?? $month) . " $year"; // date-only, no time component
     }
     if (preg_match('/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/', $timestamp, $matches)) {
         $year = $matches[1];
@@ -29,7 +34,12 @@ function format_datetime($timestamp) {
         $day = $matches[3];
         $hour = $matches[4];
         $min = $matches[5];
-        return "$day/$month/$year $hour:$min";
+        $monthNames = [
+            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+            '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+            '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+        ];
+        return "$day " . ($monthNames[$month] ?? $month) . " $year $hour:$min";
     }
     if (preg_match('/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/', $timestamp, $matches)) {
         $year = $matches[1];
@@ -37,12 +47,22 @@ function format_datetime($timestamp) {
         $day = $matches[3];
         $hour = $matches[4];
         $min = $matches[5];
-        return "$day/$month/$year $hour:$min";
+        $monthNames = [
+            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+            '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+            '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+        ];
+        return "$day " . ($monthNames[$month] ?? $month) . " $year $hour:$min";
     }
     // Fallback: try strtotime with local timezone if possible
     $ts = strtotime($timestamp);
     if ($ts !== false) {
-        return date('d/m/Y H:i', $ts);
+        $monthNames = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        return date('j', $ts) . ' ' . $monthNames[(int)date('n', $ts)] . ' ' . date('Y H:i', $ts);
     }
     return 'N/A';
 }
@@ -121,7 +141,52 @@ function pick_best_datetime($candidate, $fallbacks = []) {
 }
 
 // ============================================================
-// End DateTime Helper Functions
+// Time Ago Helper Functions
+// ============================================================
+
+/**
+ * Convert timestamp to "time ago" format
+ * @param string $timestamp MySQL DATETIME
+ * @return string
+ */
+function time_ago($timestamp) {
+    if (empty($timestamp) || $timestamp == '0000-00-00 00:00:00') {
+        return '-';
+    }
+
+    $time = strtotime($timestamp);
+    if (!$time) {
+        return 'Invalid date';
+    }
+
+    $now = time();
+    $diff = $now - $time;
+
+    if ($diff < 60) {
+        return 'Baru saja';
+    } elseif ($diff < 3600) {
+        $minutes = floor($diff / 60);
+        return $minutes . ' menit yang lalu';
+    } elseif ($diff < 86400) {
+        $hours = floor($diff / 3600);
+        return $hours . ' jam yang lalu';
+    } elseif ($diff < 604800) {
+        $days = floor($diff / 86400);
+        return $days . ' hari yang lalu';
+    } elseif ($diff < 2592000) {
+        $weeks = floor($diff / 604800);
+        return $weeks . ' minggu yang lalu';
+    } elseif ($diff < 31536000) {
+        $months = floor($diff / 2592000);
+        return $months . ' bulan yang lalu';
+    } else {
+        $years = floor($diff / 31536000);
+        return $years . ' tahun yang lalu';
+    }
+}
+
+// ============================================================
+// End Time Ago Helper Functions
 // ============================================================
 
 // Validate and store uploaded image files (server-side)
@@ -344,7 +409,10 @@ function validate_complaint($koneksi, $id_pengaduan, $action, $catatan, $id_kepa
         return ['success' => false, 'error' => 'Kepala Lingkungan tidak valid'];
     }
     $kl = mysqli_fetch_assoc($kl_check);
-    if ($complaint['wilayah'] != $kl['wilayah']) {
+    // Normalize both wilayah for comparison
+    $complaint_wilayah = normalize_wilayah($complaint['wilayah']);
+    $kl_wilayah = normalize_wilayah($kl['wilayah']);
+    if ($complaint_wilayah != $kl_wilayah) {
         return ['success' => false, 'error' => 'Kepala Lingkungan tidak berwenang untuk wilayah ini'];
     }
     
@@ -356,8 +424,8 @@ function validate_complaint($koneksi, $id_pengaduan, $action, $catatan, $id_kepa
         mysqli_query($koneksi, "DELETE FROM tanggapan WHERE id_pengaduan='$id_pengaduan' AND tanggapan LIKE 'Validasi dibatalkan%'");
         $query = "UPDATE pengaduan SET id_kepala_lingkungan='$id_kepala' WHERE id_pengaduan='$id_pengaduan'";
     } elseif ($action == 'tolak') {
-        // Reject by KL: final
-        $query = "UPDATE pengaduan SET is_rejected=1, rejected_by='$id_kepala', rejection_reason='$catatan', rejected_at=NOW(), status='rejected', id_kepala_lingkungan='$id_kepala' WHERE id_pengaduan='$id_pengaduan'";
+        // Reject by KL: final and hide from KL dashboard
+        $query = "UPDATE pengaduan SET is_rejected=1, rejected_by='$id_kepala', rejection_reason='$catatan', rejected_at=NOW(), status='rejected', id_kepala_lingkungan='$id_kepala', hidden_from_kl=1 WHERE id_pengaduan='$id_pengaduan'";
     } elseif ($action == 'batalkan_validasi') {
         // Cancel KL validation: reset kepala_lingkungan assignment, status reverts to pending, and reset Lurah approval if any, and reset progress
         // Remove KL validation markers so button can reappear

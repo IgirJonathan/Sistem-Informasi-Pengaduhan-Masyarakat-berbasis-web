@@ -1,0 +1,6 @@
+ci_app/vendor/
+ci_app/writable/
+ci_app/.env
+ci_app/composer-setup.php
+ci_app/vendor/bin/
+*.log

@@ -10,7 +10,6 @@ check_access(['admin']);
         <div class="card">
             <div class="card-header d-flex pb-0">
                 <h6>DATA MASYARAKAT</h6>
-                <a href="" class="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#tambah">Tambah Data</a>
             </div>
             <div class="card-body  px-0 pt-0 pb-2">
                 <div class="table-responsive p-0">
